@@ -26,15 +26,17 @@ export default function YoutubeBackground({ isMuted }) {
         config={{
           youtube: {
             playerVars: {
-              showinfo: 0,
+              playlist: videoId,
+              loop: 1,
               modestbranding: 1,
+              showinfo: 0,
+              controls: 0,
+              rel: 0,
               fs: 0,
+              disablekb: 1,
               iv_load_policy: 3,
               cc_load_policy: 0,
-              disablekb: 1,
-              rel: 0,
               vq: "hd1080",
-              controls: 0,
             },
           },
         }}
