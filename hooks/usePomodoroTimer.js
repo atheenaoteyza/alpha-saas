@@ -1,9 +1,12 @@
+import DoneButton from "@/components/DoneButton";
+import PomodoroSwitch from "@/components/PomodoroSwitch";
+import { PauseIcon, PlayIcon } from "lucide-react";
 import { useEffect, useReducer, useRef } from "react";
 
 const timerInitialState = {
-  isMuted: "true",
-  isRunning: "false",
-  isPomodoroOn: "false",
+  isMuted: true,
+  isRunning: false,
+  isPomodoroOn: false,
   stopwatchTime: 0,
   secondsLeft: 900,
   workCount: 0,
@@ -28,7 +31,7 @@ function timerReducer(state, action) {
       return { ...state, secondsLeft: state.secondsLeft - 1 };
 
     case "TOGGLE_POMODORO":
-      return { ...state, isPomodoroOn: !isPomodoroOn };
+      return { ...state, isPomodoroOn: !state.isPomodoroOn };
 
     case "RESET":
       return {
@@ -53,54 +56,120 @@ function timerReducer(state, action) {
         mode: action.payload,
         secondsLeft: duration * 60,
         isRunning: true,
+        isPomodoroOn: true,
       };
     }
 
-    case "INCREMENT_WORK": {
+    case "INCREMENT_WORK":
       return { ...state, workCount: state.workCount + 1 };
-    }
 
-    case "SET_INTERVALS": {
+    case "SET_INTERVALS":
       return {
         ...state,
         settings: { ...state.settings, intervalsBeforeLong: action.payload },
       };
-    }
+
+    default:
+      return state;
   }
 }
 
 export default function usePomodoroTimer() {
   const [state, dispatch] = useReducer(timerReducer, timerInitialState);
-  const pomodoroRefs = useRef();
-  const stopwatchRefs = useRef();
+  const pomodoroRef = useRef();
+  const stopwatchRef = useRef();
+  const secondsLeftRef = useRef(state.secondsLeft);
+
+  useEffect(() => {
+    secondsLeftRef.current = state.secondsLeft;
+  }, [state.secondsLeft]); // ✅ keep ref in sync with state
 
   useEffect(() => {
     if (!state.isRunning) {
-      clearInterval(stopwatchRefs.current);
-      clearInterval(pomodoroRefs.current);
+      clearInterval(stopwatchRef.current);
+      clearInterval(pomodoroRef.current);
       return;
     }
 
-    // Stopwatch mode always running when running
-    stopwatchRefs.current = setInterval(() => {
+    // Stopwatch always running
+    stopwatchRef.current = setInterval(() => {
       dispatch({ type: "TICK_STOPWATCH" });
     }, 1000);
 
+    // Pomodoro countdown
     if (state.isPomodoroOn) {
-      pomodoroRefs.current = setInterval(() => {
-        if (state.secondsLeft <= 1) {
-          clearInterval(pomodoroRefs.current);
-          return 0;
-        } else {
-          dispatch({ type: "TICK_POMODORO" });
+      pomodoroRef.current = setInterval(() => {
+        if (secondsLeftRef.current <= 1) {
+          clearInterval(pomodoroRef.current);
         }
+        dispatch({ type: "TICK_SECONDSLEFT" });
       }, 1000);
     }
 
-    return () => {};
-  });
+    return () => {
+      clearInterval(stopwatchRef.current);
+      clearInterval(pomodoroRef.current);
+    };
+  }, [
+    state.isRunning,
+    state.isPomodoroOn,
+    state.mode,
+    state.secondsLeft,
+    state.settings.shortBreak,
+    state.settings.longBreak,
+    state.settings.workDuration,
+  ]); // ✅ simplified and correct deps
 
-  return <></>;
+  // Optional: auto-switch mode when time runs out
+  useEffect(() => {
+    if (state.isRunning && state.isPomodoroOn && state.secondsLeft === 0) {
+      // Add your own logic to determine next mode (e.g. alternate work/shortBreak/longBreak)
+      const nextMode =
+        state.mode === "work" &&
+        state.workCount + 1 >= state.settings.intervalsBeforeLong
+          ? "longBreak"
+          : state.mode === "work"
+          ? "shortBreak"
+          : "work";
+
+      if (state.mode === "work") dispatch({ type: "INCREMENT_WORK" });
+      dispatch({ type: "SWITCH_MODE", payload: nextMode });
+    }
+  }, [state.secondsLeft, state.isRunning, state.isPomodoroOn]);
+
+  const formatTime = (seconds) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs.toString().padStart(2, "0")}:${mins
+      .toString()
+      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+  return (
+    <>
+      <div>
+        <div className="text-white text-4xl font-mono mb-4">
+          {state.isPomodoroOn
+            ? formatTime(state.secondsLeft)
+            : formatTime(state.stopwatchTime)}
+        </div>
+        <div className="play-button flex justify-center gap-2 items-center">
+          <button
+            className="p-4 border border-gray-600 rounded-2xl bg-[rgba(20,20,20,0.7)] hover:bg-[rgba(20,20,20,1)]"
+            onClick={() => dispatch({ type: "TOGGLE_RUNNING" })}
+          >
+            {state.isRunning ? <PauseIcon /> : <PlayIcon />}
+          </button>
+
+          <DoneButton handleComplete={() => dispatch({ type: "RESET" })} />
+          <PomodoroSwitch
+            setIsOn={() => dispatch({ type: "TOGGLE_POMODORO" })}
+            isOn={state.isPomodoroOn}
+          />
+        </div>
+      </div>
+    </>
+  );
 }
 
 // export default function Counter() {
