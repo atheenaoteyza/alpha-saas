@@ -8,14 +8,14 @@ const timerInitialState = {
   isRunning: false,
   isPomodoroOn: false,
   stopwatchTime: 0,
-  secondsLeft: 900,
+  secondsLeft: 10,
   workCount: 0,
   mode: "work",
   settings: {
-    workDuration: 15,
-    shortBreak: 5,
+    workDuration: 1,
+    shortBreak: 1,
     longBreak: 15,
-    intervalsBeforeLong: 1,
+    intervalsBeforeLong: 2,
   },
 };
 
@@ -31,6 +31,15 @@ function timerReducer(state, action) {
       return { ...state, secondsLeft: state.secondsLeft - 1 };
 
     case "TOGGLE_POMODORO":
+      if (!state.isPomodoroOn) {
+        return {
+          ...state,
+          isPomodoroOn: !state.isPomodoroOn,
+          secondsLeft: state.settings.workDuration * 60,
+          workCount: 0,
+          mode: "work",
+        };
+      }
       return { ...state, isPomodoroOn: !state.isPomodoroOn };
 
     case "RESET":
@@ -81,8 +90,9 @@ export default function usePomodoroTimer() {
   const secondsLeftRef = useRef(state.secondsLeft);
 
   useEffect(() => {
+    // Whenever mode or secondsLeft changes, sync the ref immediately
     secondsLeftRef.current = state.secondsLeft;
-  }, [state.secondsLeft]); // ✅ keep ref in sync with state
+  }, [state.mode, state.secondsLeft]);
 
   useEffect(() => {
     if (!state.isRunning) {
@@ -110,30 +120,23 @@ export default function usePomodoroTimer() {
       clearInterval(stopwatchRef.current);
       clearInterval(pomodoroRef.current);
     };
-  }, [
-    state.isRunning,
-    state.isPomodoroOn,
-    state.mode,
-    state.secondsLeft,
-    state.settings.shortBreak,
-    state.settings.longBreak,
-    state.settings.workDuration,
-  ]); // ✅ simplified and correct deps
+  }, [state.isRunning, state.isPomodoroOn, state.mode]); // ✅ simplified and correct deps
 
   // Optional: auto-switch mode when time runs out
   useEffect(() => {
-    if (state.isRunning && state.isPomodoroOn && state.secondsLeft === 0) {
-      // Add your own logic to determine next mode (e.g. alternate work/shortBreak/longBreak)
-      const nextMode =
-        state.mode === "work" &&
-        state.workCount + 1 >= state.settings.intervalsBeforeLong
-          ? "longBreak"
-          : state.mode === "work"
-          ? "shortBreak"
-          : "work";
+    if (state.isPomodoroOn && state.isRunning && state.secondsLeft === 0) {
+      if (state.mode === "work") {
+        const newCount = state.workCount + 1;
+        dispatch({ type: "INCREMENT_WORK" });
 
-      if (state.mode === "work") dispatch({ type: "INCREMENT_WORK" });
-      dispatch({ type: "SWITCH_MODE", payload: nextMode });
+        if (newCount % state.settings.intervalsBeforeLong === 0) {
+          dispatch({ type: "SWITCH_MODE", payload: "long" });
+        } else {
+          dispatch({ type: "SWITCH_MODE", payload: "short" });
+        }
+      } else {
+        dispatch({ type: "SWITCH_MODE", payload: "work" });
+      }
     }
   }, [state.secondsLeft, state.isRunning, state.isPomodoroOn]);
 
@@ -171,20 +174,3 @@ export default function usePomodoroTimer() {
     </>
   );
 }
-
-// export default function Counter() {
-//   const [state, dispatch] = useReducer(reducer, { age: 42 });
-
-//   return (
-//     <>
-//       <button
-//         onClick={() => {
-//           dispatch({ type: "incremented_age" });
-//         }}
-//       >
-//         Increment age
-//       </button>
-//       <p>Hello! You are {state.age}.</p>
-//     </>
-//   );
-// }
