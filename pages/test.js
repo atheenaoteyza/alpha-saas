@@ -13,7 +13,7 @@ const timerInitialState = {
   mode: "work",
   settings: {
     workDuration: 1,
-    shortBreak: 1,
+    shortBreak: 5,
     longBreak: 15,
     intervalsBeforeLong: 2,
   },
@@ -130,9 +130,9 @@ export default function usePomodoroTimer() {
         dispatch({ type: "INCREMENT_WORK" });
 
         if (newCount % state.settings.intervalsBeforeLong === 0) {
-          dispatch({ type: "SWITCH_MODE", payload: "long" });
+          dispatch({ type: "SWITCH_MODE", payload: "longBreak" });
         } else {
-          dispatch({ type: "SWITCH_MODE", payload: "short" });
+          dispatch({ type: "SWITCH_MODE", payload: "shortBreak" });
         }
       } else {
         dispatch({ type: "SWITCH_MODE", payload: "work" });
