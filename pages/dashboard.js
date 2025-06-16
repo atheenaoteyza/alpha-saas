@@ -5,6 +5,9 @@ import { PlayIcon, PauseIcon, CheckIcon } from "lucide-react";
 import PomodoroSwitch from "@/components/PomodoroSwitch";
 import { Geist, Geist_Mono } from "next/font/google";
 import DoneButton from "@/components/DoneButton";
+import Pomodoro from "@/components/usePomodoroTimer";
+import { timerReducer, timerInitialState } from "@/components/usePomodoroTimer";
+import { useReducer } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,6 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export default function DashBoard() {
+  const [state, dispatch] = useReducer(timerReducer, timerInitialState);
+
   const [isMuted, setIsMuted] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
   const [isOn, setIsOn] = useState(false); // Just for toggle UI
@@ -124,7 +129,7 @@ export default function DashBoard() {
     <div
       className={`${geistSans.className} ${geistMono.className} youtube-background`}
     >
-      <YoutubeBackground isMuted={isMuted} />
+      <YoutubeBackground isMuted={state.isMuted} />
 
       <div className="flex flex-col justify-between">
         <section>
@@ -132,7 +137,8 @@ export default function DashBoard() {
         </section>
 
         <div className="h-[85vh]  flex justify-center items-end">
-          <section className=" flex flex-col items-center justify-center w-[40%] h-[30%] p-[2rem]">
+          <Pomodoro></Pomodoro>
+          {/* <section className=" flex flex-col items-center justify-center w-[40%] h-[30%] p-[2rem]">
             <div className={isMuted ? "text-white" : "text-transparent"}>
               Ready to go?
             </div>
@@ -157,7 +163,7 @@ export default function DashBoard() {
 
               <PomodoroSwitch setIsOn={setIsOn} isOn={isOn} />
             </div>
-          </section>
+          </section> */}
         </div>
       </div>
     </div>
