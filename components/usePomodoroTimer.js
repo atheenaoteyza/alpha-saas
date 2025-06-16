@@ -3,7 +3,7 @@ import PomodoroSwitch from "@/components/PomodoroSwitch";
 import { PauseIcon, PlayIcon } from "lucide-react";
 import { useEffect, useReducer, useRef } from "react";
 
-const timerInitialState = {
+export const timerInitialState = {
   isMuted: true,
   isRunning: false,
   isPomodoroOn: false,
@@ -19,7 +19,7 @@ const timerInitialState = {
   },
 };
 
-function timerReducer(state, action) {
+export function timerReducer(state, action) {
   switch (action.type) {
     case "TOGGLE_RUNNING":
       return { ...state, isRunning: !state.isRunning, isMuted: !state.isMuted };
@@ -37,6 +37,7 @@ function timerReducer(state, action) {
       return {
         ...state,
         isRunning: false,
+        isMuted: true,
         stopwatchTime: 0,
         workCount: 0,
         mode: "work",
@@ -74,12 +75,10 @@ function timerReducer(state, action) {
   }
 }
 
-export default function usePomodoroTimer() {
-  const [state, dispatch] = useReducer(timerReducer, timerInitialState);
+export default function Pomodoro({ state, dispatch }) {
   const pomodoroRef = useRef();
   const stopwatchRef = useRef();
   const secondsLeftRef = useRef(state.secondsLeft);
-
   useEffect(() => {
     secondsLeftRef.current = state.secondsLeft;
   }, [state.secondsLeft]); // ✅ keep ref in sync with state
@@ -156,7 +155,9 @@ export default function usePomodoroTimer() {
         <div className="play-button flex justify-center gap-2 items-center">
           <button
             className="p-4 border border-gray-600 rounded-2xl bg-[rgba(20,20,20,0.7)] hover:bg-[rgba(20,20,20,1)]"
-            onClick={() => dispatch({ type: "TOGGLE_RUNNING" })}
+            onClick={() => {
+              dispatch({ type: "TOGGLE_RUNNING" });
+            }}
           >
             {state.isRunning ? <PauseIcon /> : <PlayIcon />}
           </button>
