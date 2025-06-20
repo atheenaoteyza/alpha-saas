@@ -1,7 +1,8 @@
 import DoneButton from "@/components/DoneButton";
 import PomodoroSwitch from "@/components/PomodoroSwitch";
 import { PauseIcon, PlayIcon } from "lucide-react";
-import { useEffect, useReducer, useRef } from "react";
+import { use, useEffect, useReducer, useRef, useState } from "react";
+import PomodoroSettings from "./PomodoroSettings";
 
 export const timerInitialState = {
   isMuted: true,
@@ -70,12 +71,22 @@ export function timerReducer(state, action) {
         settings: { ...state.settings, intervalsBeforeLong: action.payload },
       };
 
+    case "BULK_UPDATE_SETTINGS":
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          ...action.payload,
+        },
+      };
+
     default:
       return state;
   }
 }
 
 export default function Pomodoro({ state, dispatch }) {
+  const [focusLog, setFocusLog] = useState([]);
   const pomodoroRef = useRef();
   const stopwatchRef = useRef();
   const secondsLeftRef = useRef(state.secondsLeft);
@@ -117,12 +128,12 @@ export default function Pomodoro({ state, dispatch }) {
     state.settings.shortBreak,
     state.settings.longBreak,
     state.settings.workDuration,
-  ]); // ✅ simplified and correct deps
+  ]);
 
   // Optional: auto-switch mode when time runs out
   useEffect(() => {
     if (state.isRunning && state.isPomodoroOn && state.secondsLeft === 0) {
-      // Add your own logic to determine next mode (e.g. alternate work/shortBreak/longBreak)
+      // to determine next mode (e.g. alternate work/shortBreak/longBreak)
       const nextMode =
         state.mode === "work" &&
         state.workCount + 1 >= state.settings.intervalsBeforeLong
@@ -144,10 +155,78 @@ export default function Pomodoro({ state, dispatch }) {
       .toString()
       .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
+
+  const handleComplete = () => {
+    const id = new Date().toLocaleDateString();
+
+    setFocusLog((prevLog) => {
+      const existingEntry = prevLog.find((entry) => entry[id]);
+
+      if (existingEntry) {
+        return prevLog.map((entry) => {
+          if (entry[id]) {
+            return {
+              [id]: {
+                ...entry[id],
+                focusTime: entry[id].focusTime + state.stopwatchTime,
+              },
+            };
+          }
+          return entry;
+        });
+      } else {
+        //new entry
+        const newEntry = {
+          [id]: {
+            date: id,
+            focusTime: state.stopwatchTime,
+          },
+        };
+        return [...prevLog, newEntry];
+      }
+    });
+    dispatch({ type: "RESET" });
+  };
+
+  // const handleComplete = () => {
+  //   const id = new Date().toLocaleDateString();
+  //   setFocusLog((prevLog) => {
+  //     const existingEntry = prevLog.find((entry) => entry[id]);
+  //     // Update existing focusTime
+  //     if (existingEntry) {
+  //       return prevLog.map((entry) => {
+  //         if (entry[id]) {
+  //           return {
+  //             [id]: {
+  //               ...entry[id],
+  //               focusTime: entry[id].focusTime + state.stopwatchTime,
+  //             },
+  //           };
+  //         }
+  //         return entry;
+  //       });
+  //     } else {
+  //       //new entry
+  //       const newEntry = {
+  //         [id]: {
+  //           date: id,
+  //           focusTime: state.stopwatchTime,
+  //         },
+  //       };
+  //       return [...prevLog, newEntry];
+  //     }
+  //   });
+
+  //   dispatch({ type: "RESET" });
+  // };
+
+  useEffect(() => {
+    console.log(focusLog);
+  }, [focusLog]);
   return (
     <>
       <div>
-        <div className="text-white text-4xl font-mono mb-4">
+        <div className="text-white text-4xl font-mono mb-4 flex justify-center">
           {state.isPomodoroOn
             ? formatTime(state.secondsLeft)
             : formatTime(state.stopwatchTime)}
@@ -162,11 +241,15 @@ export default function Pomodoro({ state, dispatch }) {
             {state.isRunning ? <PauseIcon /> : <PlayIcon />}
           </button>
 
-          <DoneButton handleComplete={() => dispatch({ type: "RESET" })} />
+          <DoneButton handleComplete={handleComplete} />
           <PomodoroSwitch
             setIsOn={() => dispatch({ type: "TOGGLE_POMODORO" })}
             isOn={state.isPomodoroOn}
           />
+          <PomodoroSettings
+            state={state}
+            dispatch={dispatch}
+          ></PomodoroSettings>
         </div>
       </div>
     </>
