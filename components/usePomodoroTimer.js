@@ -188,38 +188,6 @@ export default function Pomodoro({ state, dispatch }) {
     dispatch({ type: "RESET" });
   };
 
-  // const handleComplete = () => {
-  //   const id = new Date().toLocaleDateString();
-  //   setFocusLog((prevLog) => {
-  //     const existingEntry = prevLog.find((entry) => entry[id]);
-  //     // Update existing focusTime
-  //     if (existingEntry) {
-  //       return prevLog.map((entry) => {
-  //         if (entry[id]) {
-  //           return {
-  //             [id]: {
-  //               ...entry[id],
-  //               focusTime: entry[id].focusTime + state.stopwatchTime,
-  //             },
-  //           };
-  //         }
-  //         return entry;
-  //       });
-  //     } else {
-  //       //new entry
-  //       const newEntry = {
-  //         [id]: {
-  //           date: id,
-  //           focusTime: state.stopwatchTime,
-  //         },
-  //       };
-  //       return [...prevLog, newEntry];
-  //     }
-  //   });
-
-  //   dispatch({ type: "RESET" });
-  // };
-
   useEffect(() => {
     console.log(focusLog);
   }, [focusLog]);
