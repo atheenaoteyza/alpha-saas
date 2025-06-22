@@ -7,7 +7,7 @@ export default function test() {
   console.log(state.isMuted);
   return (
     <>
-      <Pomodoro></Pomodoro>
+      <Pomodoro state={state} dispatch={dispatch}></Pomodoro>
     </>
   );
 }
