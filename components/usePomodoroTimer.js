@@ -3,6 +3,7 @@ import PomodoroSwitch from "@/components/PomodoroSwitch";
 import { PauseIcon, PlayIcon } from "lucide-react";
 import { use, useEffect, useReducer, useRef, useState } from "react";
 import PomodoroSettings from "./PomodoroSettings";
+import streakCount from "@/utils/streakCount";
 
 export const timerInitialState = {
   isMuted: true,
@@ -158,6 +159,8 @@ export default function Pomodoro({ state, dispatch }) {
 
   const handleComplete = () => {
     const id = new Date().toLocaleDateString();
+    const timeSpent = state.stopwatchTime;
+    streakCount({ id: id, time: timeSpent });
 
     setFocusLog((prevLog) => {
       const existingEntry = prevLog.find((entry) => entry[id]);
@@ -168,7 +171,7 @@ export default function Pomodoro({ state, dispatch }) {
             return {
               [id]: {
                 ...entry[id],
-                focusTime: entry[id].focusTime + state.stopwatchTime,
+                focusTime: entry[id].focusTime + timeSpent,
               },
             };
           }
