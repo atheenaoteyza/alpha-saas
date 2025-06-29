@@ -1,43 +1,42 @@
-function calculateStreak(focusLog) {
-  // Step 1: Extract date keys and convert to Date objects
-  const dateStrings = focusLog.map((entry) => Object.keys(entry)[0]);
-  const dates = dateStrings.map((d) => new Date(d)).sort((a, b) => a - b);
+export default function calculateStreak(focusLog) {
+  // Helper: format to YYYY-MM-DD
+  const normalizeDate = (date) => new Date(date).toISOString().split("T")[0];
+
+  // Extract and normalize all date keys
+  const dateStrings = focusLog.map((entry) =>
+    normalizeDate(Object.keys(entry)[0])
+  );
+
+  // Remove duplicates and sort chronologically
+  const dates = [...new Set(dateStrings)].sort(
+    (a, b) => new Date(a) - new Date(b)
+  );
 
   let currentStreak = 1;
   let maxStreak = 1;
 
   for (let i = 1; i < dates.length; i++) {
-    const diff = (dates[i] - dates[i - 1]) / (1000 * 60 * 60 * 24);
+    const prev = new Date(dates[i - 1]);
+    const curr = new Date(dates[i]);
+
+    const diff = (curr - prev) / (1000 * 60 * 60 * 24); // day difference
+
     if (diff === 1) {
       currentStreak++;
       maxStreak = Math.max(maxStreak, currentStreak);
     } else if (diff > 1) {
-      currentStreak = 1; // reset
+      currentStreak = 1; // reset streak
     }
   }
 
-  // Check if the last streak includes today
-  const today = new Date().toDateString();
-  const lastDate = dates[dates.length - 1].toDateString();
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
+  const today = normalizeDate(new Date());
+  const yesterday = normalizeDate(new Date(Date.now() - 1000 * 60 * 60 * 24));
+  const lastDate = dates[dates.length - 1];
 
-  const isCurrentStreakActive =
-    lastDate === today || lastDate === yesterday.toDateString();
+  const isCurrentStreakActive = lastDate === today || lastDate === yesterday;
 
   return {
     currentStreak: isCurrentStreakActive ? currentStreak : 0,
     maxStreak,
   };
 }
-
-const log = [
-  { "6/23/2025": { focusTime: 40 } },
-  { "6/24/2025": { focusTime: 30 } },
-  { "6/25/2025": { focusTime: 50 } },
-  { "6/27/2025": { focusTime: 10 } },
-];
-
-const { currentStreak, maxStreak } = calculateStreak(log);
-console.log("Current:", currentStreak); // 1 if today is 6/27/2025
-console.log("Max:", maxStreak); // 3
