@@ -1,7 +1,7 @@
 import DoneButton from "@/components/DoneButton";
 import PomodoroSwitch from "@/components/PomodoroSwitch";
 import { PauseIcon, PlayIcon } from "lucide-react";
-import { use, useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import PomodoroSettings from "./PomodoroSettings";
 import calculateStreak from "@/utils/calculateStreak";
 
@@ -13,6 +13,7 @@ export const timerInitialState = {
   secondsLeft: 900,
   workCount: 0,
   mode: "work",
+  focusLog: [], // moved here
   settings: {
     workDuration: 15,
     shortBreak: 5,
@@ -81,19 +82,51 @@ export function timerReducer(state, action) {
         },
       };
 
+    case "ADD_FOCUS_LOG": {
+      const { id, timeSpent } = action.payload;
+      const existingEntry = state.focusLog.find((entry) => entry[id]);
+      let updatedFocusLog;
+
+      if (existingEntry) {
+        updatedFocusLog = state.focusLog.map((entry) => {
+          if (entry[id]) {
+            return {
+              [id]: {
+                ...entry[id],
+                focusTime: entry[id].focusTime + timeSpent,
+              },
+            };
+          }
+          return entry;
+        });
+      } else {
+        const newEntry = {
+          [id]: {
+            date: id,
+            focusTime: timeSpent,
+          },
+        };
+        updatedFocusLog = [...state.focusLog, newEntry];
+      }
+
+      return {
+        ...state,
+        focusLog: updatedFocusLog,
+      };
+    }
+
     default:
       return state;
   }
 }
 
 export default function Pomodoro({ state, dispatch }) {
-  const [focusLog, setFocusLog] = useState([]);
   const pomodoroRef = useRef();
   const stopwatchRef = useRef();
   const secondsLeftRef = useRef(state.secondsLeft);
   useEffect(() => {
     secondsLeftRef.current = state.secondsLeft;
-  }, [state.secondsLeft]); // ✅ keep ref in sync with state
+  }, [state.secondsLeft]);
 
   useEffect(() => {
     if (!state.isRunning) {
@@ -102,12 +135,10 @@ export default function Pomodoro({ state, dispatch }) {
       return;
     }
 
-    // Stopwatch always running
     stopwatchRef.current = setInterval(() => {
       dispatch({ type: "TICK_STOPWATCH" });
     }, 1000);
 
-    // Pomodoro countdown
     if (state.isPomodoroOn) {
       pomodoroRef.current = setInterval(() => {
         if (secondsLeftRef.current <= 1) {
@@ -131,10 +162,8 @@ export default function Pomodoro({ state, dispatch }) {
     state.settings.workDuration,
   ]);
 
-  // Optional: auto-switch mode when time runs out
   useEffect(() => {
     if (state.isRunning && state.isPomodoroOn && state.secondsLeft === 0) {
-      // to determine next mode (e.g. alternate work/shortBreak/longBreak)
       const nextMode =
         state.mode === "work" &&
         state.workCount + 1 >= state.settings.intervalsBeforeLong
@@ -159,49 +188,22 @@ export default function Pomodoro({ state, dispatch }) {
 
   const handleComplete = () => {
     const today = new Date();
-    const id = new Date().toLocaleDateString();
+    const id = today.toLocaleDateString();
     const timeSpent = state.stopwatchTime;
 
-    setFocusLog((prevLog) => {
-      const existingEntry = prevLog.find((entry) => entry[id]);
-
-      if (existingEntry) {
-        return prevLog.map((entry) => {
-          if (entry[id]) {
-            return {
-              [id]: {
-                ...entry[id],
-                focusTime: entry[id].focusTime + timeSpent,
-              },
-            };
-          }
-          return entry;
-        });
-      } else {
-        //new entry
-        const newEntry = {
-          [id]: {
-            date: id,
-            focusTime: state.stopwatchTime,
-          },
-        };
-        return [...prevLog, newEntry];
-      }
+    dispatch({
+      type: "ADD_FOCUS_LOG",
+      payload: { id, timeSpent },
     });
+
     dispatch({ type: "RESET" });
   };
 
-  const dummyFocusLog = [
-    { "6/23/2025": { date: "6/23/2025", focusTime: 900 } },
-    { "6/24/2025": { date: "6/24/2025", focusTime: 1200 } },
-    { "6/25/2025": { date: "6/25/2025", focusTime: 1500 } },
-    { "6/27/2025": { date: "6/27/2025", focusTime: 600 } }, // breaks streak
-    { "6/28/2025": { date: "6/28/2025", focusTime: 300 } },
-  ];
-
   useEffect(() => {
-    console.log(calculateStreak(focusLog));
-  }, [focusLog]);
+    console.log(calculateStreak(state.focusLog));
+    console.log(state.focusLog);
+  }, [state.focusLog]);
+
   return (
     <>
       <div>
@@ -225,29 +227,9 @@ export default function Pomodoro({ state, dispatch }) {
             setIsOn={() => dispatch({ type: "TOGGLE_POMODORO" })}
             isOn={state.isPomodoroOn}
           />
-          <PomodoroSettings
-            state={state}
-            dispatch={dispatch}
-          ></PomodoroSettings>
+          <PomodoroSettings state={state} dispatch={dispatch} />
         </div>
       </div>
     </>
   );
 }
-
-// export default function Counter() {
-//   const [state, dispatch] = useReducer(reducer, { age: 42 });
-
-//   return (
-//     <>
-//       <button
-//         onClick={() => {
-//           dispatch({ type: "incremented_age" });
-//         }}
-//       >
-//         Increment age
-//       </button>
-//       <p>Hello! You are {state.age}.</p>
-//     </>
-//   );
-// }
