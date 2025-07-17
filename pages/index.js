@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 
@@ -45,12 +44,12 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Image
-            aria-hidden
+          <img
             src="/globe.svg"
             alt="Globe icon"
             width={16}
             height={16}
+            aria-hidden="true"
           />
           Go to creator's profile →
         </a>
