@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-export default function MusicPlayer({ isSettings, isMuted, dispatch }) {
+export default function MusicPlayer({ dispatch, state, isSettings }) {
   const [url, setUrl] = useState("");
 
   const seanStudy = "GSep96CLsgo";
@@ -40,7 +40,29 @@ export default function MusicPlayer({ isSettings, isMuted, dispatch }) {
     <div className="modal w-full flex flex-col justify-center items-center overflow-auto text-center">
       <div className="w-full">
         {isSettings === "volume" && (
-          <h1 className="text-lg font-semibold mb-4">Volume Settings</h1>
+          <>
+            <h1 className="text-lg font-semibold mb-4">Volume Settings</h1>
+            <div className="p-4">
+              <label htmlFor="volume" className="block mb-2">
+                Volume:
+              </label>
+              <input
+                id="volume"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                disabled={state.isMuted}
+                value={state.volume}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_VOLUME",
+                    payload: parseFloat(e.target.value),
+                  })
+                }
+              />
+            </div>
+          </>
         )}
         {isSettings === "playlist" && (
           <>
@@ -122,9 +144,13 @@ export default function MusicPlayer({ isSettings, isMuted, dispatch }) {
           type="button"
           onClick={() => dispatch({ type: "TOGGLE_MUTE" })}
           className="text-gray-400 hover:text-white cursor-pointer transition mt-2 mx-auto"
-          aria-label={isMuted ? "Un‑mute" : "Mute"}
+          aria-label={state.isMuted ? "Un‑mute" : "Mute"}
         >
-          {isMuted ? <VolumeX size={24} /> : <Volume1 size={24} />}
+          {state.isMuted || state.volume === 0 ? (
+            <VolumeX size={24} />
+          ) : (
+            <Volume1 size={24} />
+          )}
         </button>
       </div>
     </div>
