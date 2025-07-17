@@ -27,7 +27,7 @@ export default function MusicPlayer({ dispatch, state, isSettings }) {
   }
 
   function handleAddVideo(e) {
-    e.preventDefault(); // prevent form reload
+    e.preventDefault();
     const id = extractYouTubeId(url);
     if (id) {
       dispatch({ type: "CHANGE_VIDEO_ID", payload: id });
