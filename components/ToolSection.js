@@ -5,8 +5,13 @@ import SlidersIcon from "@/assets/Equalizer";
 import MusicPlayer from "@/components/MusicPlayer";
 import { useState } from "react";
 
-export default function ToolSection({ focusLog }) {
-  const streak = focusLog?.days?.currentStreak || 0;
+export default function ToolSection({
+  dispatch,
+  state,
+  audioState,
+  audioDispatch,
+}) {
+  const streak = state.focusLog?.days?.currentStreak || 0;
   const [isSettings, setIsSettings] = useState("");
 
   function handleSettingsClick(value) {
@@ -60,7 +65,7 @@ export default function ToolSection({ focusLog }) {
           </div>
         </div>
         {isSettings && (
-          <div className="absolute w-[20%] aspect-square top-20 right-[30px] bg-gray-900 border border-gray-600 rounded-xl shadow-lg p-4">
+          <div className="absolute w-[20rem] aspect-square top-20 right-[30px] bg-gray-900 border border-gray-600 rounded-xl shadow-lg p-4">
             <div className="flex justify-end mb-2">
               <button
                 onClick={() => setIsSettings("")}
@@ -70,7 +75,13 @@ export default function ToolSection({ focusLog }) {
                 &times;
               </button>
             </div>
-            <MusicPlayer isSettings={isSettings} />
+            <MusicPlayer
+              isSettings={isSettings}
+              dispatch={dispatch}
+              state={state}
+              audioState={audioState}
+              audioDispatch={audioDispatch}
+            />
           </div>
         )}
       </div>
