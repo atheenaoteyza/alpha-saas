@@ -8,7 +8,7 @@ export default function AudioPlayer({ audioState }) {
   useEffect(() => {
     if (rainRef.current) {
       rainRef.current.volume =
-        typeof audioState.rain === "number" ? audioState.rain : 0;
+        typeof audioState.rainSound === "number" ? audioState.rainSound : 0;
     }
     if (waveRef.current) {
       waveRef.current.volume =
@@ -17,7 +17,7 @@ export default function AudioPlayer({ audioState }) {
 
     // Allow autoplay after volume is set
     setReady(true);
-  }, [audioState.rain, audioState.wave]);
+  }, [audioState.rainSound, audioState.wave]);
 
   useEffect(() => {
     if (ready) {
