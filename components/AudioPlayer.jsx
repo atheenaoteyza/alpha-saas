@@ -4,6 +4,7 @@ export default function AudioPlayer({ audioState }) {
   const rainRef = useRef(null);
   const waveRef = useRef(null);
   const [ready, setReady] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
     if (rainRef.current) {
@@ -20,11 +21,22 @@ export default function AudioPlayer({ audioState }) {
   }, [audioState.rainSound, audioState.wave]);
 
   useEffect(() => {
-    if (ready) {
-      rainRef.current?.play().catch(() => {});
-      waveRef.current?.play().catch(() => {});
-    }
-  }, [ready]);
+    if (!ready || !hasInteracted) return;
+
+    rainRef.current?.play().catch(console.error);
+    waveRef.current?.play().catch(console.error);
+  }, [ready, hasInteracted]);
+
+  //Listen for the first user interaction
+  useEffect(() => {
+    const handleInteraction = () => {
+      setHasInteracted(true);
+      window.removeEventListener("click", handleInteraction);
+    };
+
+    window.addEventListener("click", handleInteraction);
+    return () => window.removeEventListener("click", handleInteraction);
+  }, []);
 
   return (
     <>
