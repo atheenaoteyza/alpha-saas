@@ -6,16 +6,28 @@ import {
   BirdIcon,
   BookOpen,
   CloudHail,
+  WavesIcon,
 } from "lucide-react";
 import { useState } from "react";
 
-export default function MusicPlayer({ dispatch, state, isSettings }) {
+export default function MusicPlayer({
+  dispatch,
+  state,
+  isSettings,
+  audioState,
+  audioDispatch,
+}) {
   const [url, setUrl] = useState("");
 
   const seanStudy = "GSep96CLsgo";
   const seasideLofi = "gUbNlN_SqpE";
   const lofiGirl = "jfKfPfyJRdk";
   const rainLofi = "vYIYIVmOo3Q";
+
+  function setVolumeChange(e) {
+    e.preventDefault();
+    setVolume(parseFloat(e.target.value));
+  }
 
   function extractYouTubeId(url) {
     try {
@@ -42,9 +54,23 @@ export default function MusicPlayer({ dispatch, state, isSettings }) {
         {isSettings === "volume" && (
           <>
             <h1 className="text-lg font-semibold mb-4">Volume Settings</h1>
+            <div className="border-t border-gray-700 mb-4"></div>
+
             <div className="p-4">
-              <label htmlFor="volume" className="block mb-2">
-                Volume:
+              <label htmlFor="volume" className="block">
+                {/* Mute / Unmute */}
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: "TOGGLE_MUTE" })}
+                  className="text-gray-400 hover:text-white cursor-pointer transition mt-2 mx-auto"
+                  aria-label={state.isMuted ? "Un‑mute" : "Mute"}
+                >
+                  {state.isMuted || state.volume === 0 ? (
+                    <VolumeX size={24} />
+                  ) : (
+                    <Volume1 size={24} />
+                  )}
+                </button>
               </label>
               <input
                 id="volume"
@@ -61,6 +87,53 @@ export default function MusicPlayer({ dispatch, state, isSettings }) {
                   })
                 }
               />
+            </div>
+            <h1 className="text-lg font-semibold mb-4">Background Sound</h1>
+            <div className="p-4 flex items-center justify-center gap-2">
+              <label htmlFor="rain" className="block mb-2">
+                <CloudHail />
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={audioState.rainSound}
+                onChange={(e) => {
+                  audioDispatch({
+                    type: "SET_RAIN_VOLUME",
+                    payload: parseFloat(e.target.value),
+                  });
+                  {
+                    audioState.rainEffect
+                      ? audioDispatch({
+                          type: "SET_RAIN_EFFECT",
+                          payload: parseFloat(e.target.value),
+                        })
+                      : "";
+                  }
+                }}
+                className="cursor-pointer"
+              ></input>{" "}
+            </div>
+            <div className="p-4 flex items-center justify-center gap-2">
+              <label htmlFor="rain" className="block mb-2">
+                <WavesIcon />
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={audioState.wave}
+                onChange={(e) =>
+                  audioDispatch({
+                    type: "SET_WAVE_VOLUME",
+                    payload: parseFloat(e.target.value),
+                  })
+                }
+                className="cursor-pointer"
+              ></input>{" "}
             </div>
           </>
         )}
@@ -113,6 +186,24 @@ export default function MusicPlayer({ dispatch, state, isSettings }) {
                 <CloudHail />
               </button>
             </div>
+            <button
+              onClick={() => {
+                audioDispatch({
+                  type: "TOGGLE_RAIN_EFFECT",
+                });
+                audioDispatch({
+                  type: "SET_RAIN_EFFECT",
+                  payload: 0.5,
+                });
+              }}
+              className={`${
+                audioState.rainEffect
+                  ? `bg-yellow-700 hover:bg-yellow-900`
+                  : `bg-[#13131A] `
+              } text-white border rounded-full border-gray-600 w-full mb-[1rem] flex items-center justify-center p-2  transition cursor-pointer`}
+            >
+              Rain Effect {audioState.rainEffect ? "On" : "Off"}
+            </button>
             {/* Form */}
             <form
               onSubmit={handleAddVideo}
@@ -138,20 +229,6 @@ export default function MusicPlayer({ dispatch, state, isSettings }) {
         )}
 
         <div className="border-t border-gray-700 mb-4"></div>
-
-        {/* Mute / Unmute */}
-        <button
-          type="button"
-          onClick={() => dispatch({ type: "TOGGLE_MUTE" })}
-          className="text-gray-400 hover:text-white cursor-pointer transition mt-2 mx-auto"
-          aria-label={state.isMuted ? "Un‑mute" : "Mute"}
-        >
-          {state.isMuted || state.volume === 0 ? (
-            <VolumeX size={24} />
-          ) : (
-            <Volume1 size={24} />
-          )}
-        </button>
       </div>
     </div>
   );
