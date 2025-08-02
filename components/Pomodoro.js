@@ -19,6 +19,11 @@ export default function Pomodoro({ state, dispatch }) {
     const fetchInitialFocusLog = async () => {
       try {
         const res = await fetch("/api/hello2");
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Unexpected response", text);
+          throw new Error("Failed to fetch");
+        }
         const data = await res.json();
 
         if (data && data.logs) {
