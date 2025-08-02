@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
+import RainEffectReactStyle from "./Rain";
 
 const ReactPlayer = dynamic(() => import("react-player/youtube"), {
   ssr: false,
@@ -7,25 +8,6 @@ const ReactPlayer = dynamic(() => import("react-player/youtube"), {
 
 export default function YoutubeBackground({ state, audioState }) {
   const videoId = state.videoId; // Default YouTube link
-  let videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  const [RainComponent, setRainComponent] = useState(null);
-
-  // Load rain component dynamically
-  useEffect(() => {
-    if (audioState.rain !== 0) {
-      // Import both CSS and component when needed
-      Promise.all([
-        import("react-rain-animation/lib/style.css"),
-        import("react-rain-animation"),
-      ])
-        .then(([_, module]) => {
-          setRainComponent(() => module.default);
-        })
-        .catch((err) => {
-          console.error("Failed to load rain animation:", err);
-        });
-    }
-  }, [audioState.rain]);
 
   const shouldShowRain = useMemo(
     () => audioState.rain !== 0,
@@ -69,7 +51,7 @@ export default function YoutubeBackground({ state, audioState }) {
             },
           }}
         />
-        {audioState.rainEffect && shouldShowRain && RainComponent && (
+        {audioState.rainEffect && shouldShowRain && (
           <div
             className="absolute top-0 left-20 w-full h-full z-10"
             style={{
@@ -78,7 +60,7 @@ export default function YoutubeBackground({ state, audioState }) {
               overflow: "hidden",
             }}
           >
-            <RainComponent numDrops={rainDropCount} />
+            <RainEffectReactStyle dropCount={rainDropCount} />
           </div>
         )}
       </div>

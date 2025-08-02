@@ -3,8 +3,8 @@ import { getAuth } from "@clerk/nextjs/server";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import calcStreak from "@/utils/calcStreak";
 
-const uri =
-  "mongodb+srv://atheena:atheena@mongodbtest.rmhtg3t.mongodb.net/?retryWrites=true&w=majority&appName=mongodbtest";
+const uri = process.env.MONGODB_URI;
+console.log("Mongo URI:", process.env.MONGODB_URI);
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -17,20 +17,23 @@ const collections = db.collection("users_log");
 
 export default async function handler(req, res) {
   // TEMP: Mock userId (replace with `const { userId } = getAuth(req)` when ready)
-  // const userId = "user_abc123";
   const { userId } = getAuth(req);
+  // const { userId, sessionId, getToken } = getAuth(req);
+  console.log("User ID:", userId);
+
   if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
   if (req.method === "GET") {
-    const user = await collections.findOne({ _id: userId });
+    let user = await collections.findOne({ _id: userId });
     if (!user) {
       await collections.insertOne({
         _id: userId,
         logs: [],
         streak: 0,
       });
+      user = await collections.findOne({ _id: userId }); // re-fetching
     }
-    const { currentStreak, maxStreak } = calcStreak(user.logs);
+    const { currentStreak, maxStreak } = calcStreak(user.logs || []);
     if (user && currentStreak !== user.streak) {
       await collections.updateOne(
         { _id: userId },
@@ -38,7 +41,7 @@ export default async function handler(req, res) {
       );
     }
     return res.status(200).json({
-      logs: user.logs || [],
+      logs: Array.isArray(user.logs) ? user.logs : [],
       days: { currentStreak, maxStreak },
     });
   }
