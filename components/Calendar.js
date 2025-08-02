@@ -85,7 +85,7 @@ export default function Calendar({ dates: filledDates = [] }) {
                 if (shouldRender) lastRenderedMonth = month;
 
                 return (
-                  <div key={index} className="w-4 text-center shrink-0">
+                  <div key={index} className="w-[1.05rem] text-center shrink-0">
                     {shouldRender ? month : ""}
                   </div>
                 );
@@ -93,9 +93,9 @@ export default function Calendar({ dates: filledDates = [] }) {
             </div>
 
             <div className="flex">
-              <div className="flex flex-col text-xs text-white mr-1 h-full justify-between">
+              <div className="flex flex-col gap-[2px] text-xs text-white mr-1 h-full justify-between">
                 {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
-                  <div key={idx} className="h-4 leading-4 text-center">
+                  <div key={idx} className="h-4 leading-[1rem] text-center">
                     {idx % 2 === 0 ? day : ""}
                   </div>
                 ))}
