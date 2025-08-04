@@ -36,8 +36,12 @@ export function audioReducer(state, action) {
     case "TOGGLE_RAIN_EFFECT":
       return {
         ...state,
-        rainEffect: !state.rainEffect,
+        rainEffect:
+          typeof action.payload === "boolean"
+            ? action.payload
+            : !state.rainEffect,
       };
+
     case "MUTE_AUDIO":
       return audioInitialState;
     default:

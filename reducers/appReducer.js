@@ -1,4 +1,5 @@
 export const lofiInitialState = {
+  isVideo: true,
   videoId: "vYIYIVmOo3Q",
   isMuted: true,
   volume: 0.5,
@@ -21,6 +22,12 @@ export const lofiInitialState = {
 
 export function lofiReducer(state, action) {
   switch (action.type) {
+    case "TOGGLE_VIDEO":
+      return {
+        ...state,
+        isVideo: !state.isVideo,
+      };
+
     case "TOGGLE_RUNNING":
       return {
         ...state,
