@@ -3,7 +3,7 @@ import { UserButton } from "@clerk/nextjs";
 import DeviceIcon from "@/assets/DeviceIcon";
 import SlidersIcon from "@/assets/Equalizer";
 import MusicPlayer from "@/components/MusicPlayer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ToolSection({
   dispatch,
@@ -17,6 +17,15 @@ export default function ToolSection({
   function handleSettingsClick(value) {
     setIsSettings(value);
   }
+
+  useEffect(() => {
+    if (!state.isVideo) {
+      audioDispatch({
+        type: "TOGGLE_RAIN_EFFECT",
+        payload: false,
+      });
+    }
+  }, [state.isVideo]);
 
   return (
     <>

@@ -9,6 +9,7 @@ import {
   WavesIcon,
 } from "lucide-react";
 import { useState } from "react";
+import RemoveVideoIcon from "@/assets/RemoveVideo";
 
 export default function MusicPlayer({
   dispatch,
@@ -185,8 +186,24 @@ export default function MusicPlayer({
               >
                 <CloudHail />
               </button>
+              <button
+                onClick={() =>
+                  dispatch({
+                    type: "TOGGLE_VIDEO",
+                  })
+                }
+                className="bg-[#1E1E2E] text-white border rounded-full border-gray-600 w-full mb-[1rem] flex items-center justify-center p-2 hover:bg-[#13131A] transition"
+              >
+                <RemoveVideoIcon />
+              </button>
             </div>
             <button
+              disabled={!state.isVideo}
+title={
+                !state.isVideo
+                  ? "Disabled when video is off"
+                  : undefined
+}
               onClick={() => {
                 audioDispatch({
                   type: "TOGGLE_RAIN_EFFECT",
