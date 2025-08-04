@@ -199,6 +199,11 @@ export default function MusicPlayer({
             </div>
             <button
               disabled={!state.isVideo}
+title={
+                !state.isVideo
+                  ? "Disabled when video is off"
+                  : undefined
+}
               onClick={() => {
                 audioDispatch({
                   type: "TOGGLE_RAIN_EFFECT",

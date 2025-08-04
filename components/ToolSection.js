@@ -19,12 +19,12 @@ export default function ToolSection({
   }
 
   useEffect(() => {
-    !state.isVideo
-      ? audioDispatch({
-          type: "TOGGLE_RAIN_EFFECT",
-          payload: false,
-        })
-      : "";
+    if (!state.isVideo) {
+      audioDispatch({
+        type: "TOGGLE_RAIN_EFFECT",
+        payload: false,
+      });
+    }
   }, [state.isVideo]);
 
   return (
