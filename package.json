@@ -2,7 +2,6 @@
   "name": "alpha-saas",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -16,7 +15,8 @@
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-player": "^2.16.0"
+    "react-player": "^2.16.0",
+    "react-rain-animation": "^1.0.4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
