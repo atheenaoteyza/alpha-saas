@@ -28,7 +28,9 @@ export default function ToolSection({
   }, [state.isVideo]);
 
   useEffect(() => {
-    setStreak(state.focusLog?.days?.currentStreak || 0);
+    const newStreak = state.focusLog?.days?.currentStreak || 0;
+    setStreak(newStreak);
+    console.log("streakstate:", newStreak);
   }, [state.focusLog]);
 
   return (
