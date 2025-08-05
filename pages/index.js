@@ -55,7 +55,7 @@ export default function Home() {
             height={16}
             aria-hidden="true"
           />
-          {`Go to creator's profile →`}
+          Go to creator&apos;s profile →
         </a>
       </footer>
     </div>
