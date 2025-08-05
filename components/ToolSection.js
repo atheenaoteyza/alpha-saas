@@ -11,7 +11,7 @@ export default function ToolSection({
   audioState,
   audioDispatch,
 }) {
-  const streak = state.focusLog?.days?.currentStreak || 0;
+  const [streak, setStreak] = useState(0);
   const [isSettings, setIsSettings] = useState("");
 
   function handleSettingsClick(value) {
@@ -26,6 +26,10 @@ export default function ToolSection({
       });
     }
   }, [state.isVideo]);
+
+  useEffect(() => {
+    setStreak(state.focusLog?.days?.currentStreak || 0);
+  }, [state.focusLog]);
 
   return (
     <>

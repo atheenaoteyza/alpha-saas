@@ -3,7 +3,6 @@ import PomodoroSwitch from "@/components/PomodoroSwitch";
 import { PauseIcon, PlayIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 import PomodoroSettings from "./PomodoroSettings";
-import calcStreak from "@/utils/calcStreak";
 import Calendar from "./Calendar";
 
 export default function Pomodoro({ state, dispatch }) {
@@ -134,7 +133,7 @@ export default function Pomodoro({ state, dispatch }) {
   useEffect(() => {
     if (!state.focusLog || !state.focusLog.logs || !state.focusLog.days) return;
 
-    const result = calcStreak(state.focusLog.logs);
+    const result = state.focusLog.days.currentStreak;
     console.log("Streak data:", result);
     console.log("All focus logs:", state.focusLog.logs);
     console.log("All streaks", state.focusLog.days);
