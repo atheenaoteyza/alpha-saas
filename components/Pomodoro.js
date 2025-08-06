@@ -106,43 +106,16 @@ export default function Pomodoro({ state, dispatch }) {
     const id = today.toLocaleDateString();
     const timeSpent = state.stopwatchTime;
 
-    await fetch("/api/hello2", {
+    const res = await fetch("api/hello2", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        date: id,
-        focusTime: timeSpent,
-      }),
+      body: JSON.stringify({ date: id, focusTime: timeSpent }),
     });
 
-    // 2. Send GET request to fetch updated logs + streak
-    const res = await fetch("/api/hello2");
     const data = await res.json();
-    if (data && data.days) {
-      console.log("Streak:", data.days.currentStreak);
-    } else {
-      console.log("No streak data yet");
-    }
-    dispatch({
-      type: "GET_FOCUS_LOG",
-      payload: data,
-    });
+    dispatch({ type: "GET_FOCUS_LOG", payload: data });
     dispatch({ type: "RESET" });
   };
-
-  useEffect(() => {
-    if (!state.focusLog || !state.focusLog.logs || !state.focusLog.days) return;
-
-    const result = state.focusLog.days.currentStreak;
-    console.log("Streak data:", result);
-    console.log("All focus logs:", state.focusLog.logs);
-    console.log("All streaks", state.focusLog.days);
-    console.log(
-      "Dates only:",
-      state.focusLog.logs.map((entry) => entry.date)
-    );
-    console.log(state.focusLog);
-  }, [state.focusLog]);
 
   return (
     <div>
