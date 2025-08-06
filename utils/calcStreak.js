@@ -3,18 +3,19 @@ export default function calcStreak(log) {
     return { currentStreak: 0, maxStreak: 0 };
   }
 
-  // Use local date strings like "2025-08-07" to prevent timezone issues
+  // Get unique date strings in YYYY-MM-DD format
   const uniqueDateStrings = [
     ...new Set(
-      log.map(
-        (entry) => new Date(entry.date).toLocaleDateString("en-CA") // YYYY-MM-DD
-      )
+      log.map((entry) => new Date(entry.date).toLocaleDateString("en-CA"))
     ),
   ];
 
-  // Convert back to Date objects and sort
+  // Convert YYYY-MM-DD to local Date objects (safe from UTC shifts)
   const dates = uniqueDateStrings
-    .map((dateStr) => new Date(dateStr + "T00:00:00")) // set to local midnight
+    .map((dateStr) => {
+      const [year, month, day] = dateStr.split("-").map(Number);
+      return new Date(year, month - 1, day); // local midnight
+    })
     .sort((a, b) => a - b);
 
   let currentStreak = 1;
@@ -32,13 +33,17 @@ export default function calcStreak(log) {
     maxStreak = Math.max(maxStreak, currentStreak);
   }
 
-  // Compare to local today and yesterday
+  // Compare to today's and yesterday's date (local)
   const todayStr = new Date().toLocaleDateString("en-CA");
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toLocaleDateString("en-CA");
 
   const lastDateStr = dates[dates.length - 1].toLocaleDateString("en-CA");
+
+  console.log("🟨 lastDateStr:", lastDateStr);
+  console.log("🟩 todayStr:", todayStr);
+  console.log("🟧 yesterdayStr:", yesterdayStr);
 
   const isCurrentStreakActive =
     lastDateStr === todayStr || lastDateStr === yesterdayStr;
