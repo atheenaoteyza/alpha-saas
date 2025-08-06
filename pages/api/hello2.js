@@ -1,5 +1,6 @@
 import { getAuth } from "@clerk/nextjs/server";
 import { getOrCreateUser } from "@/utils/getorCreateUser";
+import { normalizeLogDatesToLocal } from "@/utils/normalizeLogDates";
 
 import { MongoClient, ServerApiVersion } from "mongodb";
 import calcStreak from "@/utils/calcStreak";
@@ -26,7 +27,10 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     const user = await getOrCreateUser(userId, collections);
-    const { currentStreak, maxStreak } = calcStreak(user.logs || []);
+
+    const localLogs = normalizeLogDatesToLocal(user.logs || []);
+    const { currentStreak, maxStreak } = calcStreak(localLogs);
+
     if (user && currentStreak !== user.streak) {
       await collections.updateOne(
         { _id: userId },
@@ -68,7 +72,8 @@ export default async function handler(req, res) {
     );
 
     //Fetch updated logs and recalculate streak
-    const { currentStreak, maxStreak } = calcStreak(logs);
+    const localLogs = normalizeLogDatesToLocal(logs);
+    const { currentStreak, maxStreak } = calcStreak(localLogs);
 
     await collections.updateOne(
       { _id: userId },
