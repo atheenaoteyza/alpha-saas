@@ -115,6 +115,7 @@ export default function Pomodoro({ state, dispatch }) {
     const data = await res.json();
     dispatch({ type: "GET_FOCUS_LOG", payload: data });
     dispatch({ type: "RESET" });
+    console.log("useeffect streak:", data.days.currentStreak);
   };
 
   return (

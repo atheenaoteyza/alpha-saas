@@ -26,6 +26,10 @@ export default function ToolSection({
     }
   }, [state.isVideo]);
 
+  useEffect(() => {
+    console.log("teststate:", state.focusLog);
+  }, [state.focusLog]);
+
   return (
     <>
       <div
