@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       );
     }
     return res.status(200).json({
-      logs: Array.isArray(user.logs) ? user.logs : [],
+      logs: localLogs,
       days: { currentStreak, maxStreak },
     });
   }
@@ -82,7 +82,7 @@ export default async function handler(req, res) {
 
     return res.status(201).json({
       success: true,
-      logs,
+      logs: localLogs,
       days: { currentStreak, maxStreak },
     });
   }
