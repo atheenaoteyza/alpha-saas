@@ -4,6 +4,8 @@ import DeviceIcon from "@/assets/DeviceIcon";
 import SlidersIcon from "@/assets/Equalizer";
 import MusicPlayer from "@/components/MusicPlayer";
 import { useState, useEffect } from "react";
+import calcStreak from "@/utils/calcStreak";
+import { normalizeLogDatesToLocal } from "@/utils/normalizeLogDates";
 
 export default function ToolSection({
   dispatch,
@@ -28,6 +30,11 @@ export default function ToolSection({
 
   useEffect(() => {
     console.log("teststate:", state.focusLog);
+    console.log("dateinfront", normalizeLogDatesToLocal(state.focusLog.logs));
+    console.log(
+      "streakinfront",
+      calcStreak(normalizeLogDatesToLocal(state.focusLog.logs))
+    );
   }, [state.focusLog]);
 
   return (
