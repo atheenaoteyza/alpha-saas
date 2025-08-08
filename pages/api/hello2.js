@@ -1,4 +1,6 @@
 import { getAuth } from "@clerk/nextjs/server";
+import { getOrCreateUser } from "@/utils/getorCreateUser";
+import { normalizeLogDatesToLocal } from "@/utils/normalizeLogDates";
 
 import { MongoClient, ServerApiVersion } from "mongodb";
 import calcStreak from "@/utils/calcStreak";
@@ -24,16 +26,11 @@ export default async function handler(req, res) {
   if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
   if (req.method === "GET") {
-    let user = await collections.findOne({ _id: userId });
-    if (!user) {
-      await collections.insertOne({
-        _id: userId,
-        logs: [],
-        streak: 0,
-      });
-      user = await collections.findOne({ _id: userId }); // re-fetching
-    }
-    const { currentStreak, maxStreak } = calcStreak(user.logs || []);
+    const user = await getOrCreateUser(userId, collections);
+
+    const localLogs = normalizeLogDatesToLocal(user.logs || []);
+    const { currentStreak, maxStreak } = calcStreak(localLogs);
+
     if (user && currentStreak !== user.streak) {
       await collections.updateOne(
         { _id: userId },
@@ -41,7 +38,7 @@ export default async function handler(req, res) {
       );
     }
     return res.status(200).json({
-      logs: Array.isArray(user.logs) ? user.logs : [],
+      logs: localLogs,
       days: { currentStreak, maxStreak },
     });
   }
@@ -61,15 +58,33 @@ export default async function handler(req, res) {
           _id: userId,
         },
         {
-          $push: {
-            logs: { date, focusTime },
-          },
+          $push: { logs: { date, focusTime } },
+          $setOnInsert: { streak: 0 }, // In case user doesn't exist
         },
         { upsert: true }
       );
     }
 
-    return res.status(201).json({ success: true, date, focusTime });
+    // Fetch logs in a projected form (get only what is needed)
+    const { logs = [] } = await collections.findOne(
+      { _id: userId },
+      { projection: { logs: 1 } }
+    );
+
+    //Fetch updated logs and recalculate streak
+    const localLogs = normalizeLogDatesToLocal(logs);
+    const { currentStreak, maxStreak } = calcStreak(localLogs);
+
+    await collections.updateOne(
+      { _id: userId },
+      { $set: { streak: currentStreak } }
+    );
+
+    return res.status(201).json({
+      success: true,
+      logs: localLogs,
+      days: { currentStreak, maxStreak },
+    });
   }
 
   return res.status(405).json({ error: "Method not allowed" });

@@ -3,14 +3,26 @@ export default function calcStreak(log) {
     return { currentStreak: 0, maxStreak: 0 };
   }
 
-  // Extract and sort dates
-  const dates = log.map((entry) => new Date(entry.date)).sort((a, b) => a - b);
+  // Get unique date strings in YYYY-MM-DD format
+  const uniqueDateStrings = [
+    ...new Set(
+      log.map((entry) => new Date(entry.date).toLocaleDateString("en-CA"))
+    ),
+  ];
+
+  // Convert YYYY-MM-DD to local Date objects (safe from UTC shifts)
+  const dates = uniqueDateStrings
+    .map((dateStr) => {
+      const [year, month, day] = dateStr.split("-").map(Number);
+      return new Date(year, month - 1, day); // local midnight
+    })
+    .sort((a, b) => a - b);
 
   let currentStreak = 1;
   let maxStreak = 1;
 
   for (let i = 1; i < dates.length; i++) {
-    const diff = (dates[i] - dates[i - 1]) / (1000 * 60 * 60 * 24); // day difference
+    const diff = (dates[i] - dates[i - 1]) / (1000 * 60 * 60 * 24);
 
     if (diff === 1) {
       currentStreak++;
@@ -21,31 +33,23 @@ export default function calcStreak(log) {
     maxStreak = Math.max(maxStreak, currentStreak);
   }
 
-  // Check if current streak includes today or yesterday
-  const lastDate = dates[dates.length - 1];
-  const today = new Date();
+  // Compare to today's and yesterday's date (local)
+  const todayStr = new Date().toLocaleDateString("en-CA");
   const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toLocaleDateString("en-CA");
+
+  const lastDateStr = dates[dates.length - 1].toLocaleDateString("en-CA");
+
+  console.log("🟨 lastDateStr:", lastDateStr);
+  console.log("🟩 todayStr:", todayStr);
+  console.log("🟧 yesterdayStr:", yesterdayStr);
 
   const isCurrentStreakActive =
-    lastDate.toDateString() === today.toDateString() ||
-    lastDate.toDateString() === yesterday.toDateString();
+    lastDateStr === todayStr || lastDateStr === yesterdayStr;
 
   return {
     currentStreak: isCurrentStreakActive ? currentStreak : 0,
     maxStreak,
   };
 }
-
-// const log = [
-//   { "6/23/2025": { date: "6/23/2025", focusTime: 40 } },
-//   { "6/24/2025": { date: "6/24/2025", focusTime: 40 } },
-//   { "6/25/2025": { date: "6/25/2025", focusTime: 40 } },
-//   { "6/25/2025": { date: "6/25/2025", focusTime: 40 } },
-//   { "6/27/2025": { date: "6/27/2025", focusTime: 40 } },
-// ];
-
-const log = [
-  { date: "6/23/2025", focusTime: 900 },
-  { date: "6/24/2025", focusTime: 1200 },
-];
