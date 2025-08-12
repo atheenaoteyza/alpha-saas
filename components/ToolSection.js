@@ -55,7 +55,9 @@ export default function ToolSection({
               <FlameIcon />
               <p className="ml-1">
                 {" "}
-                {`Days Streak : ${state.focusLog?.days?.currentStreak || 0}`}
+                {`Days Streak : ${
+                  calcStreak(normalizeLogDatesToLocal(state.focusLog.logs)) || 0
+                }`}
               </p>
             </div>
           </div>
