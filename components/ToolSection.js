@@ -14,6 +14,7 @@ export default function ToolSection({
   audioDispatch,
 }) {
   const [isSettings, setIsSettings] = useState("");
+  const [currentStreak, setCurrentStreak] = useState(0);
 
   function handleSettingsClick(value) {
     setIsSettings(value);
@@ -31,10 +32,11 @@ export default function ToolSection({
   useEffect(() => {
     console.log("teststate:", state.focusLog);
     console.log("dateinfront", normalizeLogDatesToLocal(state.focusLog.logs));
-    console.log(
-      "streakinfront",
-      calcStreak(normalizeLogDatesToLocal(state.focusLog.logs))
+    const streakData = calcStreak(
+      normalizeLogDatesToLocal(state.focusLog.logs)
     );
+    setCurrentStreak(streakData.currentStreak);
+    console.log("streakinfront", streakData.currentStreak);
   }, [state.focusLog]);
 
   return (
@@ -53,10 +55,7 @@ export default function ToolSection({
           <div className="w-full flex justify-center items-center">
             <div className="flex streaks p-2 bg-gray-900 border border-gray-600 rounded-2xl">
               <FlameIcon />
-              <p className="ml-1">
-                {" "}
-                {`Days Streak : ${state.focusLog?.days?.currentStreak || 0}`}
-              </p>
+              <p className="ml-1"> {`Days Streak : ${currentStreak || 0}`}</p>
             </div>
           </div>
           <div className="p-2 flex">

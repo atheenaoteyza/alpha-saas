@@ -1,9 +1,11 @@
 import DoneButton from "@/components/DoneButton";
 import PomodoroSwitch from "@/components/PomodoroSwitch";
-import { PauseIcon, PlayIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { PauseIcon, PlayIcon, LoaderCircleIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import PomodoroSettings from "./PomodoroSettings";
 import Calendar from "./Calendar";
+import ConfettiExplosion from "react-confetti-explosion";
+import WorkDoneToast from "./WorkDoneToast";
 
 export default function Pomodoro({ state, dispatch }) {
   const pomodoroRef = useRef();
@@ -14,6 +16,10 @@ export default function Pomodoro({ state, dispatch }) {
     ? logs.map((entry) => new Date(entry.date).toISOString().split("T")[0])
     : [];
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExploding, setIsExploding] = useState(false);
+  const [isToast, setIsToast] = useState(false);
+  const [completedTime, setCompletedTime] = useState(null);
   useEffect(() => {
     const fetchInitialFocusLog = async () => {
       try {
@@ -102,25 +108,46 @@ export default function Pomodoro({ state, dispatch }) {
   };
 
   const handleComplete = async () => {
-    const today = new Date();
-    const id = today.toLocaleDateString();
-    const timeSpent = state.stopwatchTime;
+    if (state.stopwatchTime === 0) return;
+    setIsLoading(true);
+    setIsExploding(true);
 
-    const res = await fetch("api/hello2", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date: id, focusTime: timeSpent }),
-    });
+    try {
+      // artificial delay (e.g., 2 seconds)
+      // await new Promise((resolve) => setTimeout(resolve, 5000));
+      const today = new Date();
+      const id = today.toLocaleDateString();
+      const timeSpent = state.stopwatchTime;
+      console.log(`DEEP WORK COMPLETE: ${formatTime(timeSpent)}`);
+      setCompletedTime(formatTime(timeSpent));
+      setIsToast(true);
 
-    const data = await res.json();
-    dispatch({ type: "GET_FOCUS_LOG", payload: data });
-    dispatch({ type: "RESET" });
-    console.log("useeffect streak:", data.days.currentStreak);
+      const res = await fetch("api/hello2", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: id, focusTime: timeSpent }),
+      });
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      const data = await res.json();
+      dispatch({ type: "GET_FOCUS_LOG", payload: data });
+      dispatch({ type: "RESET" });
+      console.log("useeffect streak:", data.days.currentStreak);
+    } catch (error) {
+      console.error("Error completing session", error);
+    } finally {
+      setIsLoading(false);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setIsExploding(false);
+    }
   };
 
   return (
     <div>
-      <div className="text-white text-4xl font-mono mb-4 flex justify-center">
+      <div
+        className={`text-white text-4xl font-mono mb-4 flex justify-center ${
+          isLoading ? "invisible" : ""
+        }`}
+      >
         {state.isPomodoroOn
           ? formatTime(state.secondsLeft)
           : formatTime(state.stopwatchTime)}
@@ -139,13 +166,25 @@ export default function Pomodoro({ state, dispatch }) {
           {state.isRunning ? <PauseIcon /> : <PlayIcon />}
         </button>
 
-        <DoneButton handleComplete={handleComplete} />
+        <DoneButton handleComplete={handleComplete} isLoading={isLoading} />
         <PomodoroSwitch
           setIsOn={() => dispatch({ type: "TOGGLE_POMODORO" })}
           isOn={state.isPomodoroOn}
         />
         <PomodoroSettings state={state} dispatch={dispatch} />
         <Calendar dates={dates} />
+        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-2xl  ">
+          {" "}
+          {isExploding && <ConfettiExplosion />}
+        </div>
+        {!isLoading
+          ? isToast && (
+              <WorkDoneToast
+                completedTime={completedTime}
+                setIsToast={setIsToast}
+              />
+            )
+          : null}
       </div>
     </div>
   );
