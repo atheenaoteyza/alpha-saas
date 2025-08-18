@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import {
   ClerkProvider,
   SignInButton,
@@ -13,6 +14,7 @@ export default function App({ Component, pageProps }) {
     <ClerkProvider>
       <SignedIn></SignedIn>
       <Component {...pageProps} />
+      <Analytics />
     </ClerkProvider>
   );
 }
